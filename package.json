@@ -1,0 +1,19 @@
+{
+  "name": "tunbridge-wells-kebab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local takeaway ordering, dispatch and live driver-tracking platform.",
+  "packageManager": "pnpm@10.4.1",
+  "engines": { "node": ">=20.10.0" },
+  "scripts": {
+    "dev:web": "pnpm --filter @twk/web dev",
+    "dev:mobile": "pnpm --filter @twk/mobile start",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "check": "pnpm typecheck && pnpm test",
+    "supabase:start": "supabase start",
+    "supabase:reset": "supabase db reset",
+    "supabase:types": "supabase gen types typescript --local --schema public > packages/shared/src/database.types.ts"
+  }
+}
+
