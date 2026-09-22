@@ -14,6 +14,7 @@
     "supabase:start": "supabase start",
     "supabase:reset": "supabase db reset",
     "supabase:types": "supabase gen types typescript --local --schema public > packages/shared/src/database.types.ts"
-  }
+  },
+  "devDependencies": { "typescript": "^5.7.3" }
 }
 

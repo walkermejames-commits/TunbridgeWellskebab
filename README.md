@@ -42,6 +42,51 @@ See [`docs/MAP_TRACKING.md`](docs/MAP_TRACKING.md) before building the tracking 
 4. Create and link an isolated Supabase project; apply migrations locally first, then in the isolated project.
 5. Do not enable Live mode until every item in [`docs/LIVE_LAUNCH_CHECKLIST.md`](docs/LIVE_LAUNCH_CHECKLIST.md) has a real-world answer.
 
+## What is now implemented
+
+- `apps/web`: responsive Next.js customer menu/basket/transparent-demo-checkout, receipt/tracking, kitchen queue and owner control-centre prototype.
+- `apps/mobile`: native Expo Router driver surface with availability, job progression, foreground GPS consent, stop-sharing and demo proof flow.
+- `packages/shared`: integer-pence money formatter/quote, order labels and Zod API payload contracts.
+- `supabase/functions/set-runtime-mode`: owner-only, audited Demo/Live gate that fails closed when required server configuration or operational records are absent.
+
+The screens start in Demo and visibly say so. Demo neither calls Stripe nor claims that its driver marker is live.
+
+## Local setup
+
+```bash
+pnpm install
+cp .env.example .env.local
+pnpm typecheck
+pnpm test
+pnpm dev:web
+```
+
+Open `http://localhost:3000`. In a second terminal, start the driver development surface with `pnpm dev:mobile`.
+
+For the real database contract, install the Supabase CLI, create an isolated project, run `supabase start` then `supabase db reset`, create the first authenticated owner, and run `supabase/BOOTSTRAP_FIRST_OWNER.sql` privately with that user ID. Do not put service-role, Stripe or directions secrets in either app.
+
+## Function table
+
+| Function | Authority | Status |
+| --- | --- | --- |
+| `create-order` | Server prices basket, snapshots fees, creates demo order or Stripe intent | Implemented; requires Supabase runtime |
+| `assign-driver` | Kitchen/owner assignment of ready job | Implemented |
+| `update-order-status` | Role-specific state changes and proof requirement | Implemented |
+| `record-driver-location` | Assigned-driver-only active-location update | Implemented |
+| `stripe-webhook` | Signed Stripe payment authority | Implemented; requires Stripe configuration |
+| `set-runtime-mode` | Owner-only audited fail-closed Live gate | Implemented |
+
+## Pilot readiness
+
+| Feature | Demo status | Live status | Owner action still needed |
+| --- | --- | --- | --- |
+| Menu, basket and itemised fees | Usable prototype | Not enabled | Confirm merchant menu/allergens and connect Supabase |
+| Kitchen and dispatch flow | Simulated | Not enabled | Create staff accounts and test roles/RLS |
+| Driver workflow | Simulated | Not enabled | Build on Android/iOS and run a real foreground-GPS test |
+| Payments | Fake confirmation only | Locked | Configure Stripe account, test signed webhook, then live keys server-side |
+| Map tracking | Simulated marker only | Locked | Configure restricted map/directions providers and validate privacy/RLS |
+| Legal / operations | Checklists included | Blocker | Supply terms, privacy, support, merchant agreement, driver insurance/tax review |
+
 ## Reuse boundary
 
 | Source | Reuse | Do not reuse |

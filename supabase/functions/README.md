@@ -7,6 +7,7 @@
 | `update-order-status` | kitchen, driver or owner | role-specific state changes, proof requirement and stopping GPS on finish |
 | `record-driver-location` | assigned driver only | device coordinate validation, anti-jump check and active-order-only realtime location |
 | `stripe-webhook` | Stripe only | signed payment confirmation; deploy with `--no-verify-jwt` |
+| `set-runtime-mode` | owner only | audited, fail-closed Demo/Live gate; checks server configuration and minimum operational records |
 
 Before deploying, set `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `TWK_APP_ORIGIN` and, in Live mode, Stripe secrets. Do not place any of them in client code.
 

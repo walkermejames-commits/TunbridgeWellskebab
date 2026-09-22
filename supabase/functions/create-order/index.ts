@@ -72,6 +72,15 @@ Deno.serve(async (request) => {
       ? await admin.from("modifier_options").select("id, name, price_delta_pence, is_available").in("id", selectedOptionIds)
       : { data: [] as Array<{ id: string; name: string; price_delta_pence: number; is_available: boolean }> };
     if ((options?.length ?? 0) !== new Set(selectedOptionIds).size || options?.some((option) => !option.is_available)) return json({ error: "A selected option is unavailable" }, 409);
+    if (selectedOptionIds.length) {
+      const { data: mappings } = await admin.from("menu_item_modifier_groups")
+        .select("menu_item_id, modifier_group_id").in("menu_item_id", menuItemIds);
+      const { data: optionGroups } = await admin.from("modifier_options")
+        .select("id, modifier_group_id").in("id", selectedOptionIds);
+      const groupForOption = new Map((optionGroups ?? []).map((option) => [option.id, option.modifier_group_id]));
+      const permitted = new Set((mappings ?? []).map((mapping) => `${mapping.menu_item_id}:${mapping.modifier_group_id}`));
+      if (input.items.some((item) => (item.modifierOptionIds ?? []).some((id) => !permitted.has(`${item.menuItemId}:${groupForOption.get(id)}`)))) return json({ error: "A selected option is not available for this menu item" }, 409);
+    }
 
     const { data: feePolicy } = await admin.from("fee_policies").select("id, platform_fee_pence, transaction_fee_pence")
       .eq("restaurant_id", input.restaurantId).not("published_at", "is", null).is("retired_at", null).order("effective_from", { ascending: false }).limit(1).maybeSingle();
@@ -108,7 +117,13 @@ Deno.serve(async (request) => {
       platform_fee_pence: feePolicy.platform_fee_pence, transaction_fee_pence: feePolicy.transaction_fee_pence,
       total_pence: total, is_demo: isDemo,
     }).select("id, public_reference").single();
-    if (insertError || !order) throw insertError ?? new Error("Order could not be created");
+    if (insertError || !order) {
+      // A concurrent retry can hit the unique key after the preflight lookup.
+      const { data: retry } = await admin.from("orders").select("id, public_reference, payment_status, is_demo")
+        .eq("customer_id", user.id).eq("idempotency_key", input.idempotencyKey).maybeSingle();
+      if (retry) return json({ ok: true, reused: true, orderId: retry.id, reference: retry.public_reference, paymentStatus: retry.payment_status, demo: retry.is_demo });
+      throw insertError ?? new Error("Order could not be created");
+    }
     await admin.from("order_items").insert(lines.map((line) => ({ order_id: order.id, menu_item_id: line.menu.id, menu_item_name_snapshot: line.menu.name, variant_name_snapshot: line.variant?.name ?? null, unit_price_pence: line.unitPrice, quantity: line.quantity, customer_note: line.customerNote, line_total_pence: line.lineTotal })));
     await admin.from("order_status_events").insert({ order_id: order.id, actor_id: user.id, actor_role: "customer", from_status: null, to_status: isDemo ? "paid" : "pending_payment", event_type: isDemo ? "demo_order_paid" : "order_created" });
 

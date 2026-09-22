@@ -1,0 +1,13 @@
+project_id = "tunbridge-wells-kebab"
+[functions.stripe-webhook]
+verify_jwt = false
+[functions.create-order]
+verify_jwt = true
+[functions.assign-driver]
+verify_jwt = true
+[functions.update-order-status]
+verify_jwt = true
+[functions.record-driver-location]
+verify_jwt = true
+[functions.set-runtime-mode]
+verify_jwt = true
