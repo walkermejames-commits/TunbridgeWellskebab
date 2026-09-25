@@ -51,6 +51,8 @@ See [`docs/MAP_TRACKING.md`](docs/MAP_TRACKING.md) before building the tracking 
 
 The screens start in Demo and visibly say so. Demo neither calls Stripe nor claims that its driver marker is live.
 
+The local web demo now renders the complete menu transcribed in `supabase/seed.sql`: 50 items across Starters, Kebabs, Combination Kebabs, Burgers, Chicken, Fish and Meals, including every seeded price, the 24 medium/large variant choices and the five sauce/salad preferences. It supports item configuration, quantity controls, delivery or collection, required customer details, transparent integer-pence totals, fake payment confirmation, simulated status progression, kitchen actions and owner menu/opening/mode controls. No menu data was invented outside the seed.
+
 ## Local setup
 
 ```bash
@@ -62,6 +64,12 @@ pnpm dev:web
 ```
 
 Open `http://localhost:3000`. In a second terminal, start the driver development surface with `pnpm dev:mobile`.
+
+To bind the web server for Codespaces port forwarding, use:
+
+```bash
+HOSTNAME=0.0.0.0 pnpm dev:web
+```
 
 For the real database contract, install the Supabase CLI, create an isolated project, run `supabase start` then `supabase db reset`, create the first authenticated owner, and run `supabase/BOOTSTRAP_FIRST_OWNER.sql` privately with that user ID. Do not put service-role, Stripe or directions secrets in either app.
 
@@ -98,4 +106,3 @@ For the real database contract, install the Supabase CLI, create an isolated pro
 ## Important limitations
 
 This code does not create a Supabase project, Stripe account, maps account, merchant contract or driver insurance. It provides the code and configuration contracts. Real payments and real tracking remain locked off by default.
-
